@@ -17,9 +17,9 @@ const Dashboard = () => {
   return (
     <div className="p-4 md:p-6 space-y-8">
 
-      <h1 className="text-xl font-semibold">Home Dashboard</h1>
+      <h1 className="text-xl text-center   font-semibold">Home Dashboard</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {/* LIVE MAP */}
         <section className="h-[70vh] w-full relative lg:col-span-2 rounded-xl overflow-hidden">
@@ -72,9 +72,9 @@ const Dashboard = () => {
           </h3>
 
           <div className="space-y-2 text-sm">
-            <Row label="Wildlife Helpline" value="1800-123-4567" />
+            <Row label="Wildlife Helpline" value="091725 11100" />
             <Row label="Emergency" value="112" />
-            <Row label="Forest Department" value="1800-425-1718" />
+            <Row label="Forest Department" value="079961 04111" />
           </div>
         </div>
 

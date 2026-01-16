@@ -46,7 +46,7 @@ const handleProfile=()=>{
           >
             {menuOpen ? <X /> : <Menu />}
           </button>
-          <h1 className="font-semibold">Home Dashboard</h1>
+          <h1 className="font-semibold">Menu</h1>
         </div>
 
         {/* Right – Profile Avatar */}

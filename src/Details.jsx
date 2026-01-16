@@ -24,7 +24,7 @@ function Details() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm();
 
   /* ================= FILE HANDLER ================= */
@@ -43,15 +43,15 @@ function Details() {
       if (!aiData) return;
 
       if (aiData.animal) {
-        setValue("name", aiData.animal, { shouldValidate: true, shouldDirty: true });
+        setValue("name", aiData.animal, { shouldValidate: true });
       }
 
       if (aiData.description) {
-        setValue("desc", aiData.description, { shouldValidate: true, shouldDirty: true });
+        setValue("desc", aiData.description);
       }
 
       if (aiData.isInjured) {
-        setValue("isInjured", aiData.isInjured, { shouldValidate: true, shouldDirty: true });
+        setValue("isInjured", aiData.isInjured, { shouldValidate: true });
       }
 
       setAiUsed(true);
@@ -69,16 +69,29 @@ function Details() {
     };
   }, [preview]);
 
+  /* ================= ERROR HANDLER ================= */
+  const onError = (errors) => {
+    const missingFields = [];
+
+    if (errors.media) missingFields.push("Photo");
+    if (errors.name) missingFields.push("Animal name");
+    if (errors.isInjured) missingFields.push("Injury status");
+    if (errors.latitude || errors.longitude) missingFields.push("Location");
+    if (errors.day || errors.time) missingFields.push("Time");
+    if (errors.agreement) missingFields.push("Agreement checkbox");
+
+    alert(
+      `Please fill all required fields before submitting:\n\n• ${missingFields.join(
+        "\n• "
+      )}`
+    );
+  };
+
   /* ================= SUBMIT ================= */
   const subme = async (data) => {
     const user = auth.currentUser;
     if (!user) {
       alert("Please login first");
-      return;
-    }
-
-    if (!data.agreement) {
-      alert("Not submitted: You must agree the info is real");
       return;
     }
 
@@ -96,8 +109,8 @@ function Details() {
         description: data.desc,
         injured: innjured,
         location: new GeoPoint(
-          Number(data.latitude || 0),
-          Number(data.longitude || 0)
+          Number(data.latitude),
+          Number(data.longitude)
         ),
         accuracy: data.accuracy,
         media: mediaUrl,
@@ -116,8 +129,8 @@ function Details() {
   /* ================= TIME ================= */
   const fillCurrentDateTime = () => {
     const now = new Date();
-    setValue("day", now.toISOString().split("T")[0]);
-    setValue("time", now.toTimeString().slice(0, 5));
+    setValue("day", now.toISOString().split("T")[0], { shouldValidate: true });
+    setValue("time", now.toTimeString().slice(0, 5), { shouldValidate: true });
   };
 
   /* ================= LOCATION ================= */
@@ -128,9 +141,9 @@ function Details() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setValue("latitude", pos.coords.latitude);
-        setValue("longitude", pos.coords.longitude);
-        setValue("accuracy", pos.coords.accuracy);
+        setValue("latitude", pos.coords.latitude, { shouldValidate: true });
+        setValue("longitude", pos.coords.longitude, { shouldValidate: true });
+        setValue("accuracy", pos.coords.accuracy, { shouldValidate: true });
       },
       () => alert("Location permission denied")
     );
@@ -144,7 +157,7 @@ function Details() {
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6">
       <form
-        onSubmit={handleSubmit(subme)}
+        onSubmit={handleSubmit(subme, onError)}
         className="bg-[#111111] border border-gray-800 rounded-xl p-6 space-y-6"
       >
         <h1 className="text-xl font-semibold text-white">
@@ -153,13 +166,14 @@ function Details() {
 
         {/* ================= MEDIA ================= */}
         <div>
-          <label className="block text-sm text-gray-300 mb-1">
+          <p className="text-sm text-gray-400 mb-3">
+            Please upload image of animal and AI will autofill part of data.
+            Be sure to recheck all sections before submission. Stay Safe!
+          </p>
+
+          <label className="block text-sm text-gray-300 mb-2">
             Upload Photo
           </label>
-
-          <p className="text-xs text-gray-400 mb-3">
-            (Note : Upload the photo of the animal and wait — AI will automatically fill in the details.)
-          </p>
 
           <label
             className={`flex flex-col items-center justify-center gap-2
@@ -178,7 +192,6 @@ function Details() {
               }
               size={28}
             />
-
             <p className="text-sm text-gray-400">
               {aiLoading
                 ? "Analyzing using Gemini..."
@@ -200,10 +213,9 @@ function Details() {
                 alt="Preview"
                 className="h-40 rounded-xl object-cover border border-gray-700"
               />
-
               {aiUsed && (
                 <p className="text-xs text-green-400 mt-2">
-                  Details were filled by AI. Recheck them before submission.
+                  Details were filled by AI. Recheck them before submission
                 </p>
               )}
             </div>
@@ -287,27 +299,20 @@ function Details() {
         </div>
 
         {/* ================= INJURED ================= */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-200">
-            Is the animal injured?
-          </p>
+        <div>
 
-          <div className="flex gap-6 text-sm text-gray-300">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" value="Yes" {...register("isInjured")} />
-              Yes
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" value="No" {...register("isInjured")} />
-              No
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" value="Unknown" {...register("isInjured")} />
-              Don’t know
-            </label>
-          </div>
+        <p className="my-3">Is Animal Injured?</p>
+        <div className="flex gap-6 text-sm text-gray-300">
+          <label className="flex items-center gap-2">
+            <input type="radio" value="Yes" {...register("isInjured", { required: true })} /> Yes
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" value="No" {...register("isInjured", { required: true })} /> No
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" value="Unknown" {...register("isInjured", { required: true })} /> Don’t know
+          </label>
+        </div>
         </div>
 
         {/* ================= AGREEMENT ================= */}
@@ -327,11 +332,11 @@ function Details() {
 
         {/* ================= HIDDEN ================= */}
         <input type="hidden" {...register("media", { required: true })} />
-        <input type="hidden" {...register("latitude")} />
-        <input type="hidden" {...register("longitude")} />
-        <input type="hidden" {...register("accuracy")} />
-        <input type="hidden" {...register("day")} />
-        <input type="hidden" {...register("time")} />
+        <input type="hidden" {...register("latitude", { required: true })} />
+        <input type="hidden" {...register("longitude", { required: true })} />
+        <input type="hidden" {...register("accuracy", { required: true })} />
+        <input type="hidden" {...register("day", { required: true })} />
+        <input type="hidden" {...register("time", { required: true })} />
       </form>
     </div>
   );
