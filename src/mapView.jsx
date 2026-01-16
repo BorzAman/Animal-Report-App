@@ -1,4 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Link } from "react-router-dom";
@@ -6,7 +12,7 @@ import { AlertTriangle, X } from "lucide-react";
 import { useState } from "react";
 import { isOlderThanOneDay } from "./reportUtils";
 
-/* Fix Leaflet marker icons */
+/* ================= LEAFLET ICON FIX ================= */
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -17,7 +23,21 @@ L.Icon.Default.mergeOptions({
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-function MapView({ reports }) {
+/* ================= CLICK MARKER (FOR PICK MODE) ================= */
+function ClickMarker({ onSelect }) {
+  const [pos, setPos] = useState(null);
+
+  useMapEvents({
+    click(e) {
+      setPos(e.latlng);
+      onSelect?.(e.latlng);
+    },
+  });
+
+  return pos ? <Marker position={pos} /> : null;
+}
+
+function MapView({ reports = [], selectMode = false, onLocationSelect }) {
   const [fullImage, setFullImage] = useState(null);
 
   const activeReports = reports.filter(
@@ -40,51 +60,55 @@ function MapView({ reports }) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {activeReports.map((report) => (
-            <Marker
-              key={report.id}
-              position={[
-                report.location.latitude,
-                report.location.longitude,
-              ]}
-            >
-              <Popup>
-                <p className="font-semibold">{report.name}</p>
-                <p className="text-sm">{report.description}</p>
+          {!selectMode &&
+            activeReports.map((report) => (
+              <Marker
+                key={report.id}
+                position={[
+                  report.location.latitude,
+                  report.location.longitude,
+                ]}
+              >
+                <Popup>
+                  <p className="font-semibold">{report.name}</p>
+                  <p className="text-sm">{report.description}</p>
 
-                {report.media && (
-                  <img
-                    src={report.media}
-                    alt="report"
-                    className="w-32 rounded mt-2 cursor-pointer hover:opacity-80"
-                    onClick={() => setFullImage(report.media)}
-                  />
-                )}
-              </Popup>
-            </Marker>
-          ))}
+                  {report.media && (
+                    <img
+                      src={report.media}
+                      alt="report"
+                      className="w-32 rounded mt-2 cursor-pointer hover:opacity-80"
+                      onClick={() => setFullImage(report.media)}
+                    />
+                  )}
+                </Popup>
+              </Marker>
+            ))}
+
+          {selectMode && (
+            <ClickMarker onSelect={onLocationSelect} />
+          )}
         </MapContainer>
 
-        {/* FLOATING ACTION CARD */}
-        <Link
-          to="/report-animal"
-          className="absolute bottom-6 right-6 z-[1000]"
-        >
-          <ActionCard
-            title="Report Animal"
-            icon={
-              <AlertTriangle className="w-5 h-5 mx-auto text-yellow-400" />
-            }
-            gradient="from-orange-900 to-gray-900"
-          />
-        </Link>
+        {!selectMode && (
+          <Link
+            to="/report-animal"
+            className="absolute bottom-6 right-6 z-[1000]"
+          >
+            <ActionCard
+              title="Report Animal"
+              icon={
+                <AlertTriangle className="w-5 h-5 mx-auto text-yellow-400" />
+              }
+              gradient="from-orange-900 to-gray-900"
+            />
+          </Link>
+        )}
       </div>
 
-      {/* ================= FULLSCREEN IMAGE MODAL ================= */}
       {fullImage && (
         <div
-          className="fixed inset-0 z-[2000] bg-black/80
-                     flex items-center justify-center"
+          className="fixed inset-0 z-[2000] bg-black/80 flex items-center justify-center"
           onClick={() => setFullImage(null)}
         >
           <button
@@ -109,7 +133,6 @@ function MapView({ reports }) {
 export default MapView;
 
 /* ================= ACTION CARD ================= */
-
 const ActionCard = ({ title, icon, gradient }) => (
   <div
     className={`
@@ -124,3 +147,4 @@ const ActionCard = ({ title, icon, gradient }) => (
     </h4>
   </div>
 );
+  

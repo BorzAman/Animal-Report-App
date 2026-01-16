@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Upload } from "lucide-react";
+import { Upload, MapPin, CheckCircle } from "lucide-react"; // Added CheckCircle
 
 import { db } from "./firebase.jsx";
 import {
@@ -13,18 +13,21 @@ import auth from "./firebase.jsx";
 
 import { postImage } from "./postImage.js";
 import { analyzeAnimalImage } from "./geminiVision";
+import MapView from "./mapView.jsx";
 
 function Details() {
   const [preview, setPreview] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiUsed, setAiUsed] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [locationType, setLocationType] = useState(null); // 'gps' or 'custom'
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
   } = useForm();
 
   /* ================= FILE HANDLER ================= */
@@ -42,16 +45,20 @@ function Details() {
       const aiData = await analyzeAnimalImage(file);
       if (!aiData) return;
 
-      if (aiData.animal) {
+      if (aiData.animal)
         setValue("name", aiData.animal, { shouldValidate: true });
-      }
-
-      if (aiData.description) {
+      if (aiData.description)
         setValue("desc", aiData.description);
-      }
-
+      
+      /* --- UPDATED INJURY MAPPING LOGIC --- */
       if (aiData.isInjured) {
-        setValue("isInjured", aiData.isInjured, { shouldValidate: true });
+        let formValue = "Don't know"; // Default for "Unknown" or unexpected strings
+        const response = aiData.isInjured.toLowerCase();
+        
+        if (response === "yes" || response === "true") formValue = "Yes";
+        if (response === "no" || response === "false") formValue = "No";
+        
+        setValue("isInjured", formValue, { shouldValidate: true });
       }
 
       setAiUsed(true);
@@ -69,24 +76,6 @@ function Details() {
     };
   }, [preview]);
 
-  /* ================= ERROR HANDLER ================= */
-  const onError = (errors) => {
-    const missingFields = [];
-
-    if (errors.media) missingFields.push("Photo");
-    if (errors.name) missingFields.push("Animal name");
-    if (errors.isInjured) missingFields.push("Injury status");
-    if (errors.latitude || errors.longitude) missingFields.push("Location");
-    if (errors.day || errors.time) missingFields.push("Time");
-    if (errors.agreement) missingFields.push("Agreement checkbox");
-
-    alert(
-      `Please fill all required fields before submitting:\n\n• ${missingFields.join(
-        "\n• "
-      )}`
-    );
-  };
-
   /* ================= SUBMIT ================= */
   const subme = async (data) => {
     const user = auth.currentUser;
@@ -95,10 +84,9 @@ function Details() {
       return;
     }
 
-    let innjured = "null";
+    let innjured = "Unknown";
     if (data.isInjured === "Yes") innjured = "True";
     if (data.isInjured === "No") innjured = "False";
-    if (data.isInjured === "Unknown") innjured = "Unknown";
 
     try {
       const mediaUrl = await postImage(data.media);
@@ -129,11 +117,15 @@ function Details() {
   /* ================= TIME ================= */
   const fillCurrentDateTime = () => {
     const now = new Date();
-    setValue("day", now.toISOString().split("T")[0], { shouldValidate: true });
-    setValue("time", now.toTimeString().slice(0, 5), { shouldValidate: true });
+    setValue("day", now.toISOString().split("T")[0], {
+      shouldValidate: true,
+    });
+    setValue("time", now.toTimeString().slice(0, 5), {
+      shouldValidate: true,
+    });
   };
 
-  /* ================= LOCATION ================= */
+  /* ================= GPS LOCATION ================= */
   const getLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -144,6 +136,8 @@ function Details() {
         setValue("latitude", pos.coords.latitude, { shouldValidate: true });
         setValue("longitude", pos.coords.longitude, { shouldValidate: true });
         setValue("accuracy", pos.coords.accuracy, { shouldValidate: true });
+        setLocationType("gps"); // Mark as GPS
+        setShowMap(false);
       },
       () => alert("Location permission denied")
     );
@@ -157,22 +151,19 @@ function Details() {
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6">
       <form
-        onSubmit={handleSubmit(subme, onError)}
+        onSubmit={handleSubmit(subme)}
         className="bg-[#111111] border border-gray-800 rounded-xl p-6 space-y-6"
       >
-        <h1 className="text-xl font-semibold text-white">
+        <h1 className="text-xl font-semibold text-white text-center">
           Report an Animal
         </h1>
 
         {/* ================= MEDIA ================= */}
         <div>
-          <p className="text-sm text-gray-400 mb-3">
-            Please upload image of animal and AI will autofill part of data.
-            Be sure to recheck all sections before submission. Stay Safe!
-          </p>
-
           <label className="block text-sm text-gray-300 mb-2">
             Upload Photo
+            <p className="my-2">( Please upload image of animal and AI will autofill part of data.
+            Be sure to recheck all sections before submission. Stay Safe!)</p>
           </label>
 
           <label
@@ -181,23 +172,12 @@ function Details() {
               aiLoading ? "border-yellow-500" : "border-gray-700"
             }
             rounded-xl p-10 cursor-pointer
-            hover:border-red-600 transition
-            bg-[#0f0f0f]`}
+            hover:border-red-600 transition bg-[#0f0f0f]`}
           >
-            <Upload
-              className={
-                aiLoading
-                  ? "animate-bounce text-yellow-500"
-                  : "text-gray-400"
-              }
-              size={28}
-            />
+            <Upload size={28} className="text-gray-400" />
             <p className="text-sm text-gray-400">
-              {aiLoading
-                ? "Analyzing using Gemini..."
-                : "Click to upload or drag image"}
+              {aiLoading ? "Analyzing..." : "Click to upload image"}
             </p>
-
             <input
               type="file"
               accept="image/*"
@@ -207,32 +187,22 @@ function Details() {
           </label>
 
           {preview && (
-            <div className="mt-4">
-              <img
-                src={preview}
-                alt="Preview"
-                className="h-40 rounded-xl object-cover border border-gray-700"
-              />
-              {aiUsed && (
-                <p className="text-xs text-green-400 mt-2">
-                  Details were filled by AI. Recheck them before submission
-                </p>
-              )}
-            </div>
+            <img
+              src={preview}
+              alt="preview"
+              className="mt-4 h-40 rounded-xl border border-gray-700 object-cover"
+            />
           )}
         </div>
 
         {/* ================= NAME ================= */}
-        <div>
           <label className="block text-sm text-gray-300 mb-2">
-            Animal Name
-          </label>
-          <input
-            type="text"
-            {...register("name", { required: true, maxLength: 16 })}
-            className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white"
-          />
-        </div>
+            Name
+          </label>        <input
+          {...register("name", { required: true })}
+          placeholder="Animal name"
+          className="w-full bg-[#0f0f0f] border border-gray-700 px-4 py-2 rounded-lg text-white"
+        />
 
         {/* ================= DESCRIPTION ================= */}
         <div>
@@ -241,93 +211,146 @@ function Details() {
           </label>
           <textarea
             {...register("desc")}
-            rows="3"
-            className="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white"
+            rows={3}
+            placeholder="Describe animal condition, behavior, surroundings..."
+            className="w-full bg-[#0f0f0f] border border-gray-700 px-4 py-2 rounded-lg text-white resize-none"
           />
         </div>
 
-        {/* ================= LOCATION ================= */}
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={getLocation}
-            className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm text-white"
-          >
-            Get Location
-          </button>
+
+        {/* ================= LOCATION (MUTUALLY EXCLUSIVE) ================= */}
+        <div className="space-y-4  border-gray-800 pt-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-300 font-medium">Add Location (Required)</p>
+            {locationType && (
+                <span className="text-xs text-green-400 flex items-center gap-1 bg-green-900/20 px-2 py-1 rounded-full">
+                    <CheckCircle size={12}/> {locationType === 'gps' ? 'Auto-detected' : 'Custom Picked'}
+                </span>
+            )}
+          </div>
+
+          <div className="flex gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={getLocation}
+              className={`px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${
+                locationType === 'gps' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <MapPin size={16} />
+              Get Location
+            </button>
+            <p className="mt-1 text-gray-500">Or</p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowMap((v) => !v);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${
+                locationType === 'custom' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <MapPin size={16} />
+              Custom Location
+            </button>
+          </div>
+
+          {showMap && (
+            <div className="h-64 rounded-xl overflow-hidden border border-gray-700">
+              <MapView
+                selectMode
+                onLocationSelect={(latlng) => {
+                  setValue("latitude", latlng.lat, { shouldValidate: true });
+                  setValue("longitude", latlng.lng, { shouldValidate: true });
+                  setValue("accuracy", 10, { shouldValidate: true });
+                  setLocationType("custom"); // Mark as Custom
+                  setShowMap(false);
+                }}
+              />
+            </div>
+          )}
 
           {lat && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                value={lat}
-                readOnly
-                className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg"
-              />
-              <input
-                value={lon}
-                readOnly
-                className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <input readOnly value={`Lat: ${lat}`} className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg" />
+              <input readOnly value={`Lon: ${lon}`} className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg" />
             </div>
           )}
         </div>
 
         {/* ================= TIME ================= */}
-        <div className="space-y-3">
-          <button
+        <div className="space-y-2">
+            <button
             type="button"
             onClick={fillCurrentDateTime}
             className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm text-white"
-          >
+            >
             Get Time
-          </button>
+            </button>
 
-          {(day || time) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                value={day}
-                readOnly
-                className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg"
-              />
-              <input
-                value={time}
-                readOnly
-                className="bg-[#0f0f0f] border border-gray-700 px-3 py-2 text-xs text-white rounded-lg"
-              />
+            {(day || time) && (
+            <div className="grid grid-cols-2 gap-4">
+                <input readOnly value={day} className="bg-[#0f0f0f] border border-gray-700 px-4 py-2 rounded-lg text-white" />
+                <input readOnly value={time} className="bg-[#0f0f0f] border border-gray-700 px-4 py-2 rounded-lg text-white" />
             </div>
-          )}
+            )}
         </div>
 
-        {/* ================= INJURED ================= */}
-        <div>
+        {/* ================= IS ANIMAL INJURED ================= */}
+        <div className="space-y-4 pt-5">
+          <label className="block text-lg font-normal text-white">
+            Is Animal Injured?
+          </label>
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+              <input
+                type="radio"
+                value="Yes"
+                {...register("isInjured", { required: true })}
+                className="w-4 h-4 accent-red-600"
+              />
+              Yes
+            </label>
+            <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+              <input
+                type="radio"
+                value="No"
+                {...register("isInjured", { required: true })}
+                className="w-4 h-4 accent-red-600"
+              />
+              No
+            </label>
+            <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+              <input
+                type="radio"
+                value="Don't know"
+                {...register("isInjured", { required: true })}
+                className="w-4 h-4 accent-red-600"
+              />
+              Don't know
+            </label>
+          </div>
 
-        <p className="my-3">Is Animal Injured?</p>
-        <div className="flex gap-6 text-sm text-gray-300">
-          <label className="flex items-center gap-2">
-            <input type="radio" value="Yes" {...register("isInjured", { required: true })} /> Yes
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" value="No" {...register("isInjured", { required: true })} /> No
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" value="Unknown" {...register("isInjured", { required: true })} /> Don’t know
-          </label>
-        </div>
+          <div className="pt-2">
+            <label className="flex items-center gap-3 text-gray-300 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("agreement", { required: true })}
+                className="w-4 h-4 rounded border-gray-700 bg-[#0f0f0f] accent-red-600"
+              />
+              <span className="text-sm">I agree that the information shared is real</span>
+            </label>
+          </div>
         </div>
 
-        {/* ================= AGREEMENT ================= */}
-        <label className="flex gap-2 text-sm text-gray-300">
-          <input type="checkbox" {...register("agreement", { required: true })} />
-          I agree that the information shared is real
-        </label>
 
         {/* ================= SUBMIT ================= */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg py-2 font-semibold"
+          className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg text-white font-semibold transition"
         >
-          Submit Report
+          {isSubmitting ? "Submitting..." : "Submit Report"}
         </button>
 
         {/* ================= HIDDEN ================= */}
