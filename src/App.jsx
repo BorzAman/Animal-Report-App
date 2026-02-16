@@ -20,6 +20,7 @@ import Footer from "./components/Footer.jsx";
 import ProtectedRoutes from "./ProtectedRoutes.jsx";
 import PublicRoutes from "./PublicRoutes.jsx";
 import { Outlet } from "react-router-dom";
+import Sample from './Landpage.jsx';
 
 // 🔹 Layout for authenticated pages
 const AppLayout = ({ menuOpen, setMenuOpen }) => {
@@ -39,8 +40,10 @@ const AppLayout = ({ menuOpen, setMenuOpen }) => {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-
+  
   return (
+    <>
+     
     <BrowserRouter>
       <Routes>
                   <Route path="/map" element={<FullscreenMap />} />
@@ -74,6 +77,7 @@ function App() {
 
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
 
