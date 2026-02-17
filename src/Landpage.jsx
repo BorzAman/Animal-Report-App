@@ -1,7 +1,8 @@
-"use client";
+
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "./authContext";
 import {
   PawPrint,
   AlertTriangle,
@@ -21,12 +22,14 @@ import {
   ChevronRight,
   Users
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Sample() {
-
+const navigate=useNavigate(); 
+const { user } = useAuth(); 
   return (
     <div className="dark bg-background-dark font-display text-gray-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-primary/30">
-
+        
       {/* NAVBAR */}
       <nav className="fixed w-full z-50 glass-panel border-b border-primary/10">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -36,15 +39,15 @@ export default function Sample() {
               <PawPrint className="text-primary group-hover:text-white transition duration-300"/>
             </div>
             <span className="font-bold text-xl tracking-tight">
-              Wild<span className="text-primary">Alert</span>
+              Pashu<span className="text-primary">Jagarak</span>
             </span>
           </div>
 
           <div className="hidden md:flex gap-8 text-sm font-medium">
-            <a className="text-white hover:text-primary transition">Home</a>
-            <a className="text-gray-300 hover:text-primary transition">Live Map</a>
-            <a className="text-gray-300 hover:text-primary transition">Community Reports</a>
-            <a className="text-gray-300 hover:text-primary transition">Safety Guide</a>
+            <a onClick={()=>{if (user) navigate('/home'); else navigate('/login')}} className="text-white hover:text-primary transition">Home</a>
+            <a onClick={()=>{navigate('/map')}} className="text-gray-300 hover:text-primary transition">Live Map</a>
+            <a onClick={()=>{if (user) navigate('/report-animal'); else navigate('/login')}} className="text-gray-300 hover:text-primary transition">Report Animal</a>
+            <a onClick={()=>{navigate('/safety')}} className="text-gray-300 hover:text-primary transition">Safety Guide</a>
           </div>
 
           <button className="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/50 px-4 py-2 rounded-lg hover:bg-primary hover:text-white transition duration-300 group">
@@ -80,7 +83,7 @@ export default function Sample() {
             <h1 className="text-5xl md:text-7xl font-extrabold leading-none tracking-tight">
               Stay Safe.<br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-400">
-                Stay Wild.
+                Stay Alert.
               </span>
             </h1>
 
@@ -91,14 +94,14 @@ export default function Sample() {
             {/* BUTTONS EXACT */}
             <div className="flex gap-4 flex-wrap">
 
-              <button className="group relative px-8 py-4 bg-primary rounded-xl font-bold overflow-hidden text-white shadow-[0_0_20px_rgba(238,43,43,0.4)] hover:shadow-[0_0_30px_rgba(238,43,43,0.6)] transition-all">
+              <button onClick={()=>{navigate('/login')}} className="group relative px-8 py-4 bg-primary rounded-xl font-bold overflow-hidden text-white shadow-[0_0_20px_rgba(238,43,43,0.4)] hover:shadow-[0_0_30px_rgba(238,43,43,0.6)] transition-all">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
-                <div className="flex gap-3 relative items-center">
+                <div  className="flex gap-3 relative items-center">
                   <Eye size={20}/> Report Sighting
                 </div>
               </button>
 
-              <button className="px-8 py-4 border-2 border-gray-700 hover:border-primary text-gray-300 hover:text-white rounded-xl flex gap-3 items-center transition-colors bg-surface-dark/50">
+              <button onClick={()=>{navigate('/map')}} className="px-8 py-4 border-2 border-gray-700 hover:border-primary text-gray-300 hover:text-white rounded-xl flex gap-3 items-center transition-colors bg-surface-dark/50">
                 <Map size={20}/> View Live Map
               </button>
 

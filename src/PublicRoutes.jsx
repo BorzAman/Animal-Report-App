@@ -9,8 +9,10 @@ const PublicRoutes = () => {
     return <div className="p-6 text-gray-400">Loading…</div>;
   }
 
+  
+
   // If logged in → go to home
-  return user ? <Navigate to="/home" replace /> : <Outlet />;
+  return user ? <Navigate to="/" replace /> : <Outlet />;
 };
 
 export default PublicRoutes;

@@ -21,11 +21,15 @@ import {
   Loader2,
   Calendar
 } from "lucide-react";
+import Toast from "../Toast.jsx";
 
 const MyReports = () => {
   const { user } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast,setToast]=useState(false);
+   const [toastText,setToastText]=useState("");
+   const[toastType,setToastType]=useState("");
 
   // 🔹 Fetch only MY reports
   useEffect(() => {
@@ -82,11 +86,16 @@ const MyReports = () => {
         resolvedAt: serverTimestamp(),
       });
 
+      setToast(true);
+      setToastText("Report marked as resolved!");
+      setToastType("success");
+
     } catch (err) {
       console.error("Failed to update report:", err);
       // Revert if failed
       // (Simplified: In a real app, you'd re-fetch or rollback state)
     }
+    
   };
 
   if (loading) {
@@ -97,10 +106,12 @@ const MyReports = () => {
       </div>
     );
   }
+  
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8 bg-background-dark min-h-screen font-display text-gray-100">
       
+      {toast && <Toast message={toastText} type={toastType} isVisible={toast} onClose={() => setToast(false)} />}
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end border-b border-white/5 pb-6 gap-4">
         <div>

@@ -15,6 +15,7 @@ import {
   Crosshair,
   Map as MapIcon
 } from "lucide-react";
+import Toast from "./Toast.jsx";
 
 import { db } from "./firebase.jsx";
 import {
@@ -28,6 +29,7 @@ import auth from "./firebase.jsx";
 import { postImage } from "./postImage.js";
 import { analyzeAnimalImage } from "./geminiVision";
 import MapView from "./mapView.jsx";
+import { s } from "motion/react-client";
 
 function Details() {
   const [preview, setPreview] = useState(null);
@@ -35,8 +37,10 @@ function Details() {
   const [aiUsed, setAiUsed] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [locationType, setLocationType] = useState(null); // 'gps' or 'custom'
-
-  const {
+  const [toast,setToast]=useState(false);
+  const [toastText,setToastText]=useState("");
+  const[toastType,setToastType]=useState("");
+  const{
     register,
     handleSubmit,
     watch,
@@ -120,10 +124,14 @@ function Details() {
         resolvedAt: null,
       });
 
-      alert("Report submitted successfully");
+      setToast(true);
+      setToastText("Report submitted successfully!");
+      setToastType("success");
     } catch (err) {
       console.error(err);
-      alert("Submission failed");
+      setToast(true);
+      setToastText("Failed to submit report. Please try again."); 
+      setToastType("error");
     }
   };
 
@@ -137,7 +145,9 @@ function Details() {
   /* ================= GPS LOCATION ================= */
   const getLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      setToast(true);
+      setToastText("Geolocation is not supported by your browser.");
+      setToastType("info");
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -148,7 +158,11 @@ function Details() {
         setLocationType("gps");
         setShowMap(false);
       },
-      () => alert("Location permission denied")
+      () => {
+        setToast(true);
+        setToastText("Unable to retrieve location");
+        setToastType("error");
+      }
     );
   };
 
@@ -164,8 +178,10 @@ function Details() {
   };
 
   return (
+   
     <div className="relative min-h-screen flex items-center justify-center p-4 md:p-8 bg-background-dark font-display text-gray-100 overflow-hidden">
-      
+      {toast && <Toast message={toastText} type={toastType} isVisible={toast} onClose={() => setToast(false)} />}
+       
       {/* --- BACKGROUND LAYERS --- */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393798-3828fb4090bb?q=80&w=2940&auto=format&fit=crop')] bg-cover bg-center opacity-5 mix-blend-overlay fixed"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/95 to-background-dark fixed"></div>

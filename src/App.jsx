@@ -21,6 +21,7 @@ import ProtectedRoutes from "./ProtectedRoutes.jsx";
 import PublicRoutes from "./PublicRoutes.jsx";
 import { Outlet } from "react-router-dom";
 import Sample from './Landpage.jsx';
+import SafetyGuide from "./SafetyGuide.jsx";
 
 // 🔹 Layout for authenticated pages
 const AppLayout = ({ menuOpen, setMenuOpen }) => {
@@ -40,21 +41,25 @@ const AppLayout = ({ menuOpen, setMenuOpen }) => {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  
+   
+    
   return (
     <>
-     
+      
     <BrowserRouter>
       <Routes>
+                  <Route path="/" element={<Sample />} />
+                  <Route path="/safety" element={<SafetyGuide />} />
                   <Route path="/map" element={<FullscreenMap />} />
-        {/* ---------- PUBLIC ROUTES ---------- */}
+                  <Route path="/login" element={<Google />} />
+        {/* ---------- PUBLIC ROUTES ----------*/}
         <Route element={<PublicRoutes />}>
-          <Route path="/" element={<Google />} />
-          <Route path="/login" element={<Google />} />
+          
+          
 
         </Route>
 
-        {/* ---------- PROTECTED ROUTES ---------- */}
+       { /*---------- PROTECTED ROUTES ---------- */}
         <Route element={<ProtectedRoutes />}>
           <Route
             element={
