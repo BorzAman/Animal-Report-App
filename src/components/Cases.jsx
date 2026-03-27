@@ -37,7 +37,7 @@ const getUserLocationSafe = () =>
   new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
 
-    navigator.geolocation.getCurrentPosition(
+    igator.geolocation.getCurrentPosition(
       pos => resolve(pos.coords),
       () => resolve(null),
       { timeout: 5000 }
