@@ -44,7 +44,7 @@ function Mapp() {
     <div className="relative h-full w-full bg-background-dark overflow-hidden group">
       
       {/* --- FLOATING CONTROLS OVERLAY --- */}
-      <div className="absolute top-4 left-4 z-[400] flex items-center gap-3">
+      <div className="absolute top-18 left-4 z-[400] flex items-center gap-3">
          
          {/* Live Stats Badge */}
          <motion.div 

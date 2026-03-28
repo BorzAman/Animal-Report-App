@@ -117,7 +117,7 @@ function MapView({ reports = [], selectMode = false, onLocationSelect }) {
           <div className="absolute bottom-8 right-6 z-[1000] flex flex-col items-end gap-3 pointer-events-none">
             
             {/* The Button Container (Pointer events enabled here) */}
-            <div className="pointer-events-auto relative">
+            <div className="pointer-events-auto relative mt-[-10rem]">
                 
                 {/* Pulsing Rings (Attention Grabber) */}
                 <span className="absolute inline-flex h-full w-full animate-[ping_2s_ease-in-out_infinite] rounded-full bg-[#ee2b2b] opacity-20"></span>
