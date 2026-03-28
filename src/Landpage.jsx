@@ -337,7 +337,7 @@ export default function Sample() {
           </div>
         </div>
         <div className="max-w-7xl mx-auto border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
-          <p>© 2024 WildAlert Inc. All rights reserved.</p>
+          <p>© 2026 WildAlert Inc. All rights reserved.</p>
           <div className="flex gap-4">
             <span>Twitter</span>
             <span>Instagram</span>
