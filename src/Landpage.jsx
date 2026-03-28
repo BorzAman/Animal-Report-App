@@ -177,7 +177,7 @@ export default function Sample() {
               <p className="text-gray-400">Live reports from the community and automated sensors.</p>
             </div>
             <button
-              onClick={() => navigate('/cases/nearby')}
+              onClick={() => navigate('/cases/all')}
               className="hidden md:flex text-primary hover:text-white items-center gap-2 transition"
             >
               View All Reports <ArrowRight size={18} />
@@ -186,24 +186,26 @@ export default function Sample() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <ActivityCard
-              image="https://images.unsplash.com/photo-1596707328221-83149d585461?auto=format&fit=crop&q=80&w=600"
-              tag="Bear Activity"
-              location="North Ridge Trail"
-              time="12 mins ago"
+              image="https://images.unsplash.com/photo-1456926631375-92c8ce872def?auto=format&fit=crop&q=80&w=800"
+              tag="Leopard Sighted"
+              location="Western Ghats - Sector 7"
+              time="1 day ago"
               verified={true}
+              severity="high"
             />
             <ActivityCard
-              image="https://images.unsplash.com/photo-1535295972055-1c762f4483e5?auto=format&fit=crop&q=80&w=600"
-              tag="Elk Migration"
-              location="Valley Stream"
-              time="45 mins ago"
+              image="https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&q=80&w=800"
+              tag="Bengal Tiger"
+              location="Ranthambore Perimeter"
+              time="2 days ago"
               verified={true}
+              severity="high"
             />
             <ActivityCard
-              image="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=600"
-              tag="Fallen Tree"
-              location="Access Road B"
-              time="2 hours ago"
+              image="https://upload.wikimedia.org/wikipedia/commons/b/b4/Python_reticulatus_%D1%81%D0%B5%D1%82%D1%87%D0%B0%D1%82%D1%8B%D0%B9_%D0%BF%D0%B8%D1%82%D0%BE%D0%BD-2.jpg"
+              tag="Python Spotted"
+              location="Wetlands Buffer Zone"
+              time="4 days ago"
               verified={false}
               severity="low"
             />
@@ -257,14 +259,14 @@ export default function Sample() {
                 Get instant notifications, offline maps, and direct lines to emergency services. Download WildAlert today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button  
-                onClick={() => alert("In Production..!")}
-                className="flex items-center gap-3 bg-white text-background-dark px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition">
+                <button
+                  onClick={() => alert("In Production..!")}
+                  className="flex items-center gap-3 bg-white text-background-dark px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition">
                   <Smartphone size={20} /> App Store
                 </button>
-                <button 
-                onClick={() => alert("In Production..!")}
-                className="flex items-center gap-3 glass-panel border border-white/20 px-6 py-3 rounded-lg font-bold hover:bg-white/10 transition">
+                <button
+                  onClick={() => alert("In Production..!")}
+                  className="flex items-center gap-3 glass-panel border border-white/20 px-6 py-3 rounded-lg font-bold hover:bg-white/10 transition">
                   Play Store
                 </button>
               </div>
@@ -378,6 +380,9 @@ function StatItem({ number, label }) {
 }
 
 function ActivityCard({ image, tag, location, time, verified, severity = "high" }) {
+  // 2. Initialize the hook inside the component
+  const navigate = useNavigate();
+
   return (
     <div className="group glass-panel rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition duration-300 hover:-translate-y-1">
       <div className="h-48 overflow-hidden relative">
@@ -397,14 +402,21 @@ function ActivityCard({ image, tag, location, time, verified, severity = "high" 
           <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
           <Clock size={12} /> {time}
         </div>
-        <button className="w-full py-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary text-xs font-bold transition border border-white/5">
-          View Details
+
+        {/* 3. The button now has access to navigate */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents any parent click events from firing
+            navigate('/cases/all');
+          }}
+          className="cursor-pointer w-full py-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary text-xs font-bold transition border border-white/5 relative z-10"
+        >
+          View All Reports
         </button>
       </div>
     </div>
-  )
+  );
 }
-
 function FeatureCard({ icon, title, desc }) {
   return (
     <div className="p-6 rounded-2xl bg-surface-dark border border-white/5 hover:border-primary/30 transition duration-300 group">
