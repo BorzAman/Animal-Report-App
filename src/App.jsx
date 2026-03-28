@@ -13,6 +13,7 @@ import RescueInfo from "./components/RescueInfo.jsx";
 import SafetyTips from "./components/SafetyTips.jsx";
 import FullscreenMap from "./FullscreenMap.jsx";
 import Allcases from "./components/AllCases.jsx";
+import EmergencyPage from "./components/EmergencyPage.jsx";
 
 import TopNavbar from "./components/TopNavbar.jsx";
 import MobileMenu from "./components/MobileMenu.jsx";
@@ -79,6 +80,7 @@ function App() {
             <Route path="/cases/my" element={<MyReports />} />
             <Route path="/cases/nearby" element={<Cases />} />
             <Route path="/cases/all" element={<Allcases />} />
+            <Route path="/emergency" element={<EmergencyPage />} /> 
           </Route>
         </Route>
 

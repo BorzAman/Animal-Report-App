@@ -50,7 +50,9 @@ export default function Sample() {
             <a onClick={() => { navigate('/safety') }} className="text-gray-300 hover:text-primary transition cursor-pointer  ">Safety Guide</a>
           </div>
 
-          <button className="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/50 px-4 py-2 rounded-lg hover:bg-primary hover:text-white transition duration-300 group">
+          <button
+          onClick={()=>{navigate('/emergency')}}
+           className="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/50 px-4 py-2 rounded-lg hover:bg-primary hover:text-white transition duration-300 group">
             <AlertTriangle size={18} />
             <span className="group-hover:animate-pulse">Emergency Contact</span>
           </button>
