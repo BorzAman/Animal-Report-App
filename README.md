@@ -29,4 +29,26 @@ An interactive web application that allows users to report, track, and visualize
 
 ---
 
-## 📁 Project Structure
+
+## 🏗️ Project Structure
+
+Based on your current directory, here is the organized structure of the frontend (Vite/React):
+
+```text
+pashu-jagarak/
+├── node_modules/       # Project dependencies
+├── public/              # Static assets (icons, images)
+├── src/                 # Main source code
+│   ├── assets/          # Project-specific images/styles
+│   ├── components/      # Reusable UI components (Navbar, Footer, etc.)
+│   ├── pages/           # Main views (Home, Report, Dashboard)
+│   ├── App.jsx          # Main App component
+│   └── main.jsx         # Entry point
+├── .env                 # Environment variables (API Keys, URLs)
+├── .gitignore           # Files to exclude from Git
+├── eslint.config.js     # Linting configuration
+├── index.html           # Main HTML file
+├── package-lock.json    # Locked versions of dependencies
+├── package.json         # Project metadata and dependencies
+├── README.md            # Project documentation
+└── vite.config.js       # Vite build configuration
